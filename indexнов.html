@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Трекер контента для астрологов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --cream:#F9EFF1; --card:#FFFFFF; --navy:#2A1B45; --gold:#C9A96E;
+    --gold-light:#E7D9B8; --gold-deep:#9C7F49; --ink:#20222E; --body:#585A68;
+    --line:rgba(23,26,51,0.10); --blush:#F3DCD2; --lavender:#E1D8ED;
+    --sage:#DCE6D6; --sky:#D5E3EC;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5;
+  }
+  .page{
+    max-width:520px;margin:0 auto;
+    padding:26px 18px calc(40px + env(safe-area-inset-bottom));
+    position:relative;overflow:hidden;min-height:100vh;
+  }
+  .glow{position:absolute;border-radius:50%;filter:blur(80px);z-index:0;opacity:.45;pointer-events:none;}
+  .g1{width:280px;height:280px;background:var(--blush);top:-150px;left:-120px;}
+  .g2{width:260px;height:260px;background:var(--lavender);top:-130px;right:-110px;}
+  .g3{width:200px;height:200px;background:var(--sky);top:180px;right:-130px;opacity:.35;}
+  .g4{width:200px;height:200px;background:var(--sage);top:420px;left:-120px;opacity:.3;}
+  .page > *:not(.glow){position:relative;z-index:1;}
+
+  .eyebrow{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    text-transform:uppercase;letter-spacing:3px;font-size:10px;
+    color:var(--gold-deep);font-weight:600;margin-bottom:14px;
+  }
+  .eyebrow .line{width:28px;height:1px;background:var(--gold);}
+  h1.title{
+    font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:36px;
+    line-height:1.1;text-align:center;color:var(--navy);margin:0 0 10px;
+  }
+  h1.title em{font-style:italic;color:var(--gold-deep);}
+  .subtitle{text-align:center;color:var(--body);font-size:13.5px;margin:0 auto 26px;line-height:1.6;max-width:340px;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 20px;margin-bottom:14px;}
+  .card-label{text-transform:uppercase;letter-spacing:2.2px;font-size:10px;color:var(--gold-deep);font-weight:700;margin-bottom:12px;}
+  .muted{color:var(--body);font-size:13.5px;line-height:1.6;margin:0;}
+
+  .prog-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;gap:10px;}
+  .prog-day{font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;color:var(--navy);font-weight:600;}
+  .prog-day span{font-size:15px;color:var(--body);font-family:'Inter',sans-serif;font-weight:500;}
+  .prog-streak{font-size:12px;color:var(--gold-deep);font-weight:600;text-align:right;}
+  .theme-line{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:16px;color:var(--gold-deep);margin:0 0 16px;}
+  .dots{display:grid;grid-template-columns:repeat(10,1fr);gap:7px;}
+  .dot{
+    aspect-ratio:1;border-radius:50%;border:1px solid var(--line);background:var(--cream);
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:#B9B4C2;
+    font-weight:600;transition:transform .15s ease;
+  }
+  .dot.done{background:var(--navy);border-color:var(--navy);color:var(--gold-light);cursor:pointer;}
+  .dot.done.shot{box-shadow:0 0 0 2px rgba(201,169,110,.55);}
+  .dot.today{border:1.5px solid var(--gold);color:var(--gold-deep);background:#fff;}
+  .dot.done:active{transform:scale(.9);}
+
+  .idea-card{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;margin-bottom:14px;}
+  .idea-head{background:var(--navy);padding:16px 20px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .idea-head .tag{
+    display:inline-flex;align-items:center;gap:6px;background:rgba(201,169,110,.16);
+    border:1px solid rgba(201,169,110,.4);color:var(--gold-light);font-size:10px;
+    letter-spacing:2px;text-transform:uppercase;padding:5px 11px;border-radius:100px;white-space:nowrap;
+  }
+  .idea-head .daynum{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:14px;color:rgba(255,255,255,.75);}
+  .idea-body{padding:20px;}
+  .idea-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:24px;color:var(--navy);margin:0 0 10px;line-height:1.2;}
+  .idea-hint{color:var(--body);font-size:14px;line-height:1.65;margin:0;}
+
+  .btn{
+    display:block;width:100%;border:none;border-radius:100px;padding:16px 20px;
+    font-family:'Inter',sans-serif;font-size:15px;font-weight:600;background:var(--navy);
+    color:#fff;cursor:pointer;transition:opacity .15s ease,transform .15s ease;
+  }
+  .btn:active{transform:scale(.985);}
+  .btn.gold{background:var(--gold-deep);}
+  .btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--line);}
+  .btn.sm{padding:12px 18px;font-size:13.5px;}
+  .btn:focus-visible{outline:2px solid var(--gold-deep);outline-offset:3px;}
+  .btn-note{text-align:center;font-size:11.5px;color:var(--body);margin:9px 0 0;}
+  .done-state{text-align:center;background:var(--cream);border-radius:18px;padding:16px;}
+  .done-state .mark{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;color:var(--navy);font-style:italic;}
+  .done-state .sub{font-size:12px;color:var(--gold-deep);font-weight:600;margin-top:4px;}
+  .thumb-preview{width:100%;border-radius:14px;margin-top:12px;display:block;cursor:pointer;}
+
+  details.pointa{background:var(--card);border:1px solid var(--line);border-radius:22px;margin-bottom:14px;}
+  details.pointa summary{list-style:none;padding:18px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+  details.pointa summary::-webkit-details-marker{display:none;}
+  .pa-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;color:var(--navy);font-weight:600;}
+  .pa-chev{font-size:11px;color:var(--gold-deep);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;}
+  .pa-body{padding:0 20px 20px;}
+  .pa-row{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .pa-row:last-child{border-bottom:none;}
+  .pa-row .k{font-size:13px;color:var(--body);flex:1;}
+  .pa-row .v{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:16px;color:var(--gold-deep);text-align:right;}
+
+  .reward{border-radius:22px;padding:22px 20px;margin-bottom:14px;background:var(--card);border:1px dashed var(--gold);text-align:center;}
+  .reward.on{background:var(--navy);border:1px solid var(--navy);}
+  .reward .star{font-size:15px;color:var(--gold);letter-spacing:6px;}
+  .reward h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:23px;color:var(--navy);margin:8px 0;}
+  .reward.on h3{color:#fff;}
+  .reward p{font-size:13px;color:var(--body);line-height:1.6;margin:0;}
+  .reward.on p{color:rgba(255,255,255,.78);}
+  .reward .bar{height:5px;border-radius:100px;background:var(--cream);margin-top:16px;overflow:hidden;}
+  .reward .bar i{display:block;height:100%;background:var(--gold);border-radius:100px;transition:width .4s ease;}
+  .reward.on .bar{background:rgba(255,255,255,.15);}
+
+  .theme-opt{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:11px;cursor:pointer;transition:border-color .15s ease;}
+  .theme-opt.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
+  .theme-opt h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:21px;color:var(--navy);margin:0 0 6px;}
+  .theme-opt p{font-size:13px;color:var(--body);line-height:1.55;margin:0;}
+  .field{margin-bottom:13px;}
+  .field label{display:block;font-size:12px;color:var(--body);margin-bottom:6px;}
+  .field input{
+    width:100%;border:1px solid var(--line);border-radius:14px;background:var(--cream);
+    padding:13px 15px;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);
+  }
+  .field input:focus{outline:none;border-color:var(--gold);background:#fff;}
+
+  .rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .rep-item{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+  .rep-item img{width:100%;height:120px;object-fit:cover;display:block;background:var(--cream);cursor:pointer;}
+  .rep-item .noimg{height:120px;display:flex;align-items:center;justify-content:center;background:var(--cream);color:#B9B4C2;font-size:11px;text-align:center;padding:10px;}
+  .rep-item .meta{padding:9px 11px;}
+  .rep-item .d{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:15px;color:var(--gold-deep);}
+  .rep-item .t{font-size:11px;color:var(--body);line-height:1.35;margin-top:2px;}
+
+  .foot{text-align:center;margin-top:26px;}
+  .foot .mark{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:14px;color:var(--gold-deep);}
+  .devbar{margin-top:18px;display:flex;gap:8px;}
+  .devbar button{flex:1;background:transparent;border:1px dashed var(--line);border-radius:100px;padding:9px;font-size:11px;color:#A8A4B2;font-family:'Inter',sans-serif;cursor:pointer;}
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--navy);color:#fff;padding:12px 20px;border-radius:100px;font-size:13px;
+    opacity:0;pointer-events:none;transition:all .25s ease;z-index:50;max-width:90%;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .lightbox{position:fixed;inset:0;background:rgba(32,34,46,.9);display:none;align-items:center;justify-content:center;padding:24px;z-index:60;}
+  .lightbox.show{display:flex;}
+  .lightbox img{max-width:100%;max-height:80vh;border-radius:16px;}
+  .hidden{display:none !important;}
+
+  .author-row{
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    margin:0 0 22px;
+  }
+  .author-photo{
+    width:52px;height:52px;border-radius:50%;object-fit:cover;
+    border:2px solid var(--gold-light);flex:none;
+  }
+  .author-photo.placeholder{
+    background:var(--cream);border:2px dashed var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;
+    font-size:20px;color:var(--gold-deep);
+  }
+  .author-text{text-align:left;}
+  .author-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:16px;color:var(--navy);line-height:1.2;}
+  .author-link{font-size:12px;color:var(--gold-deep);text-decoration:none;}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow g1"></div><div class="glow g2"></div>
+  <div class="glow g3"></div><div class="glow g4"></div>
+  <div id="root"></div>
+  <div class="foot">
+    <div class="mark">✷ Кристина Бегашева</div>
+    <div id="offline-note" style="font-size:11px;color:#A8A4B2;margin-top:6px"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="lightbox" id="lightbox"><img id="lightbox-img" alt="Скрин публикации"></div>
+<input type="file" id="picker" accept="image/*" class="hidden">
+
+<script type="application/json" id="fallback-data">
+{
+  "challenge": {
+    "title": "Трекер",
+    "subtitle": "30 дней. Выбираешь одну тему месяца. Каждый день — одна идея для контента. Выполнила — отметила. Продержишься 30 дней — получишь полноценный соляр в подарок.",
+    "totalDays": 30,
+    "author": "Кристина Бегашева",
+    "reward": {
+      "title": "Соляр в подарок",
+      "locked": "Закрашены все 30 кружков — и я собираю твой соляр: печатный файл-прогноз на год.",
+      "unlocked": "30 из 30. Соляр твой. Собери отчёт, пришли мне — и я отправлю печатный файл-прогноз на год.",
+      "contact": "https://t.me/ProstoPro_Life"
+    },
+    "titleEm": "контента",
+    "channelUrl": "https://t.me/womenfvenera",
+    "channelLabel": "@womenfvenera",
+    "authorPhoto": "data:image/jpeg;base64,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"
+  },
+  "pointA": {
+    "note": "Шаг 1. Зафиксируй, где ты сейчас. Через 30 дней сравним с точкой Б.",
+    "fields": [
+      {
+        "id": "leads",
+        "label": "Заявок и консультаций за месяц",
+        "placeholder": "2",
+        "type": "number"
+      },
+      {
+        "id": "posts",
+        "label": "Публикаций за последний месяц",
+        "placeholder": "3",
+        "type": "number"
+      },
+      {
+        "id": "ig",
+        "label": "Подписчиков в Instagram",
+        "placeholder": "740",
+        "type": "number"
+      },
+      {
+        "id": "threads",
+        "label": "Подписчиков в Threads",
+        "placeholder": "120",
+        "type": "number"
+      },
+      {
+        "id": "tg",
+        "label": "Подписчиков в Telegram",
+        "placeholder": "310",
+        "type": "number"
+      }
+    ]
+  },
+  "themes": [
+    {
+      "id": "dengi",
+      "name": "Деньги",
+      "tagline": "Самая продаваемая ниша и самая замусоренная. Выигрывает тот, кто говорит конкретно.",
+      "ideas": [
+        {
+          "format": "Пост",
+          "title": "Как я пришла в астрологию",
+          "hint": "Без «знаков свыше». Что реально происходило в жизни в тот момент и почему ты осталась.",
+          "day": 1,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему из всех тем я выбрала тему денег",
+          "hint": "Личная причина, а не «это востребовано». Задаёт тему всего месяца.",
+          "day": 2,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Почему мне нравятся именно эти разборы",
+          "hint": "Что ты чувствуешь, когда работаешь с темой «деньги». Две-три сторис, живьём.",
+          "day": 3,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как выглядит моя работа изнутри",
+          "hint": "Карта, заметки, подготовка. Процесс показывает уровень лучше регалий.",
+          "day": 4,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Рилс",
+          "title": "Кому я не подхожу как астролог",
+          "hint": "Отсечение работает лучше зазывания. Назови прямо, с кем не работаешь.",
+          "day": 5,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Второй дом — не про сумму на счёте",
+          "hint": "Дом показывает отношение к ресурсу. Сразу отстраивает от «денежных марафонов».",
+          "day": 6,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Чем второй дом отличается от восьмого",
+          "hint": "Свои деньги и чужие деньги. Коротко, на бытовом примере.",
+          "day": 7,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Что в карте показывает, как человек зарабатывает",
+          "hint": "Назови конкретные точки, без тумана. Пост уходит в сохранения.",
+          "day": 8,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Откуда берётся денежный потолок",
+          "hint": "Где карта, а где сценарий из семьи. Астрология плюс транзактный анализ.",
+          "day": 9,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Как выглядит денежный транзит на самом деле",
+          "hint": "Не подарок судьбы, а окно, в которое надо зайти ногами.",
+          "day": 10,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Три вещи, которые карта про деньги не покажет",
+          "hint": "Не покажет сумму, дату и «когда прилетит». Честные границы метода.",
+          "day": 11,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Финансовый сценарий, который вижу у половины клиенток",
+          "hint": "Работа за «спасибо», стыд назвать цену. Здесь аудитория узнаёт себя.",
+          "day": 12,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Что я отвечаю на «сделайте мне денежный ритуал»",
+          "hint": "Прямая позиция против магического мышления.",
+          "day": 13,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "«Карта не даёт мне денег» — разбор подмены",
+          "hint": "Где ответственность человека, а где действительно период.",
+          "day": 14,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему у двух людей с сильным вторым домом разный доход",
+          "hint": "Карта — потенциал, а не гарантия.",
+          "day": 15,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Сторис",
+          "title": "Аффирмации на деньги: где предел",
+          "hint": "Опрос плюс твой честный ответ во второй сторис.",
+          "day": 16,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Восьмой дом: долги, чужие деньги и почему его боятся",
+          "hint": "Разбери спокойно, без мистики.",
+          "day": 17,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Рилс",
+          "title": "«Родовые деньги» — что за этим реально стоит",
+          "hint": "Отделяешь рабочую часть от эзотерического тумана.",
+          "day": 18,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: клиентка боялась поднять цены",
+          "hint": "Запрос, что увидела в карте, что решили, что изменилось.",
+          "day": 19,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: доход вырос, а тревога осталась",
+          "hint": "Показывает, что ты работаешь глубже, чем «даты и суммы».",
+          "day": 20,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как я готовлюсь к финансовому разбору",
+          "hint": "Пошагово, в сторис. Продаёт процессом.",
+          "day": 21,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Кусок реального заключения",
+          "hint": "Один абзац с согласия клиента. Показывает формат работы.",
+          "day": 22,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Что пишут через месяц после разбора",
+          "hint": "Скрины отзывов с закрытыми именами.",
+          "day": 23,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Опрос: за что вам сложнее всего брать деньги",
+          "hint": "Ответы разберёшь на следующий день.",
+          "day": 24,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Мой личный финансовый косяк",
+          "hint": "Один реальный эпизод. Личное про деньги читают лучше теории.",
+          "day": 25,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Рилс",
+          "title": "Почему я не делаю скидок",
+          "hint": "Твёрдая позиция приводит адекватных клиентов.",
+          "day": 26,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Что человек уносит с финансового разбора",
+          "hint": "Опиши результат словами клиента, а не списком услуг.",
+          "day": 27,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Сколько стоит мой разбор и почему столько",
+          "hint": "Назови цену. Молчание читается как неуверенность.",
+          "day": 28,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Сторис",
+          "title": "Открыла запись на разборы",
+          "hint": "Прямое приглашение. Месяц контента был ради этого дня.",
+          "day": 29,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "30 дней контента: что изменилось",
+          "hint": "Покажи свои цифры до и после. Такой пост продаёт лучше любого оффера.",
+          "day": 30,
+          "stage": "Сближение и приглашение"
+        }
+      ]
+    },
+    {
+      "id": "otnosheniya",
+      "name": "Отношения",
+      "tagline": "Приходят чаще всего. Тут легко скатиться в «когда встречу своего человека» — не скатывайся.",
+      "ideas": [
+        {
+          "format": "Пост",
+          "title": "Как я пришла в астрологию",
+          "hint": "Без «знаков свыше». Что реально происходило в жизни в тот момент и почему ты осталась.",
+          "day": 1,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему из всех тем я выбрала тему отношений",
+          "hint": "Личная причина, а не «это востребовано». Задаёт тему всего месяца.",
+          "day": 2,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Почему мне нравятся именно эти разборы",
+          "hint": "Что ты чувствуешь, когда работаешь с темой «отношения». Две-три сторис, живьём.",
+          "day": 3,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как выглядит моя работа изнутри",
+          "hint": "Карта, заметки, подготовка. Процесс показывает уровень лучше регалий.",
+          "day": 4,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Рилс",
+          "title": "Кому я не подхожу как астролог",
+          "hint": "Отсечение работает лучше зазывания. Назови прямо, с кем не работаешь.",
+          "day": 5,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Седьмой дом — про то, кого выбираешь ты",
+          "hint": "Смещает фокус с ожидания на ответственность.",
+          "day": 6,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Совместимость по знакам — почему это не работает",
+          "hint": "Расскажи, что смотрят на самом деле.",
+          "day": 7,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Венера в карте: чего человек хочет от близости",
+          "hint": "Один конкретный разбор вместо общих слов.",
+          "day": 8,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Луна и то, как человек просит тепла",
+          "hint": "Практично: люди сразу примеряют на себя.",
+          "day": 9,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Что в карте говорит про сценарий расставаний",
+          "hint": "Спокойно, без «венца безбрачия».",
+          "day": 10,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему я не называю дату встречи партнёра",
+          "hint": "Карта показывает периоды, а не события. Снимает завышенные ожидания.",
+          "day": 11,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Что смотреть, если отношения есть, а радости нет",
+          "hint": "Половина ниши пишет только для одиноких. Займи пустое место.",
+          "day": 12,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Три мифа про кармических партнёров",
+          "hint": "Против романтизации токсичных связей.",
+          "day": 13,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "«Он мой человек по карте» — разбор подмены",
+          "hint": "Совместимость не отменяет поведения.",
+          "day": 14,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Может ли карта показать, что человек не подходит",
+          "hint": "Не подходит — это решение, а не диагноз.",
+          "day": 15,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Сторис",
+          "title": "Опрос: во что вы верили про отношения и разочаровались",
+          "hint": "Живая обратная связь плюс тема на завтра.",
+          "day": 16,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Приворот, «сушка» и почему я против",
+          "hint": "Твоя позиция. После такого приходит адекватная аудитория.",
+          "day": 17,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Рилс",
+          "title": "«Все мужчины одинаковые» — что показывает карта",
+          "hint": "Повторяющийся выбор, а не проклятие.",
+          "day": 18,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: почему она выбирала одинаковых мужчин",
+          "hint": "Карта плюс сценарий из детства.",
+          "day": 19,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: пара на грани, разобрали и остались",
+          "hint": "Показывает, что ты работаешь с обоими.",
+          "day": 20,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Разбор вопроса из директа",
+          "hint": "Реальный вопрос, честный ответ. Видно, как ты думаешь.",
+          "day": 21,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как проходит мой разбор совместимости",
+          "hint": "Процесс по шагам.",
+          "day": 22,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Что клиенты понимают про себя на разборе",
+          "hint": "Результат словами клиента.",
+          "day": 23,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Отзывы после разборов отношений",
+          "hint": "Скрины с закрытыми именами.",
+          "day": 24,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Мой опыт: что я поняла про близость",
+          "hint": "Личное, без исповеди. Сближает.",
+          "day": 25,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Рилс",
+          "title": "Три вопроса себе до того, как начать отношения",
+          "hint": "Проверяемые, бытовые.",
+          "day": 26,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Кому стоит идти на разбор отношений, а кому рано",
+          "hint": "Честная отстройка.",
+          "day": 27,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Что входит в мой разбор отношений и сколько стоит",
+          "hint": "Состав и цена, прямым текстом.",
+          "day": 28,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Сторис",
+          "title": "Открыла запись на разборы",
+          "hint": "Прямое приглашение. Месяц контента был ради этого дня.",
+          "day": 29,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "30 дней контента: что изменилось",
+          "hint": "Покажи свои цифры до и после. Такой пост продаёт лучше любого оффера.",
+          "day": 30,
+          "stage": "Сближение и приглашение"
+        }
+      ]
+    },
+    {
+      "id": "zdorovye",
+      "name": "Здоровье и ресурс",
+      "tagline": "Ниша, где легко нарушить границы. Пиши про ресурс и режим, а не про диагнозы.",
+      "ideas": [
+        {
+          "format": "Пост",
+          "title": "Как я пришла в астрологию",
+          "hint": "Без «знаков свыше». Что реально происходило в жизни в тот момент и почему ты осталась.",
+          "day": 1,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему из всех тем я выбрала тему ресурса",
+          "hint": "Личная причина, а не «это востребовано». Задаёт тему всего месяца.",
+          "day": 2,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Почему мне нравятся именно эти разборы",
+          "hint": "Что ты чувствуешь, когда работаешь с темой «здоровье и ресурс». Две-три сторис, живьём.",
+          "day": 3,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как выглядит моя работа изнутри",
+          "hint": "Карта, заметки, подготовка. Процесс показывает уровень лучше регалий.",
+          "day": 4,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Рилс",
+          "title": "Кому я не подхожу как астролог",
+          "hint": "Отсечение работает лучше зазывания. Назови прямо, с кем не работаешь.",
+          "day": 5,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему астролог не ставит диагнозы",
+          "hint": "Обозначь границу прямо. Это профессионализм, а не слабость метода.",
+          "day": 6,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Шестой дом — не про болезни, а про режим",
+          "hint": "Сон, нагрузка, рутина. На бытовом примере.",
+          "day": 7,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Луна: как ты восстанавливаешься",
+          "hint": "Один из самых применимых разборов.",
+          "day": 8,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Где ты сливаешь энергию по карте",
+          "hint": "Конкретный маркер и что с ним делать.",
+          "day": 9,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Марс и то, как человек тратит силы",
+          "hint": "Почему одни выгорают на спринте, другие на марафоне.",
+          "day": 10,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Периоды, когда нагрузку лучше снизить",
+          "hint": "Логика транзитов без запугивания.",
+          "day": 11,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Что делать, если карта «сложная» по здоровью",
+          "hint": "Это про внимание к себе, а не приговор.",
+          "day": 12,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "«У меня Сатурн, поэтому я устала» — разбор подмены",
+          "hint": "Где карта, а где просто недосып.",
+          "day": 13,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Ретроградные периоды и самочувствие: что правда",
+          "hint": "Отдели наблюдение от суеверия.",
+          "day": 14,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему я не отменяю врача",
+          "hint": "Прямая позиция. Защищает и тебя, и клиента.",
+          "day": 15,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Сторис",
+          "title": "Опрос: что первым отваливается, когда вы выгораете",
+          "hint": "Ответы разберёшь завтра.",
+          "day": 16,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "«Родовые болезни по карте» — что здесь не так",
+          "hint": "Аккуратно разбираешь популярный миф.",
+          "day": 17,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Рилс",
+          "title": "Три признака, что вы живёте не в своём ритме",
+          "hint": "Проверяемые, без эзотерики.",
+          "day": 18,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: перестроила режим по карте",
+          "hint": "Что изменили и что стало с самочувствием.",
+          "day": 19,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: выгорание на любимой работе",
+          "hint": "Показывает, что дело не всегда в деле.",
+          "day": 20,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как проходит разбор ресурса",
+          "hint": "Шаги и что человек получает на выходе.",
+          "day": 21,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Мой режим в загруженную неделю",
+          "hint": "Личный пример. Люди копируют то, что видят.",
+          "day": 22,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Отзывы: что изменилось за месяц",
+          "hint": "Скрины с закрытыми именами.",
+          "day": 23,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Три вещи, которые я советую всем клиенткам",
+          "hint": "Простые и проверяемые.",
+          "day": 24,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Как я сама выбиралась из перегруза",
+          "hint": "Личная история, без драмы.",
+          "day": 25,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Рилс",
+          "title": "Что я делаю каждый день ради ресурса",
+          "hint": "Короткий бытовой список.",
+          "day": 26,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Кому подойдёт разбор ресурса",
+          "hint": "Честная отстройка: кому рано, кому в самый раз.",
+          "day": 27,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Состав и цена разбора",
+          "hint": "Прямым текстом, без «пишите в директ».",
+          "day": 28,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Сторис",
+          "title": "Открыла запись на разборы",
+          "hint": "Прямое приглашение. Месяц контента был ради этого дня.",
+          "day": 29,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "30 дней контента: что изменилось",
+          "hint": "Покажи свои цифры до и после. Такой пост продаёт лучше любого оффера.",
+          "day": 30,
+          "stage": "Сближение и приглашение"
+        }
+      ]
+    },
+    {
+      "id": "biznes",
+      "name": "Бизнес и запуски",
+      "tagline": "Аудитория — эксперты и предприниматели. Платят больше, спрашивают конкретнее.",
+      "ideas": [
+        {
+          "format": "Пост",
+          "title": "Как я пришла в астрологию",
+          "hint": "Без «знаков свыше». Что реально происходило в жизни в тот момент и почему ты осталась.",
+          "day": 1,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему из всех тем я выбрала тему бизнеса",
+          "hint": "Личная причина, а не «это востребовано». Задаёт тему всего месяца.",
+          "day": 2,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Почему мне нравятся именно эти разборы",
+          "hint": "Что ты чувствуешь, когда работаешь с темой «бизнес и запуски». Две-три сторис, живьём.",
+          "day": 3,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как выглядит моя работа изнутри",
+          "hint": "Карта, заметки, подготовка. Процесс показывает уровень лучше регалий.",
+          "day": 4,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Рилс",
+          "title": "Кому я не подхожу как астролог",
+          "hint": "Отсечение работает лучше зазывания. Назови прямо, с кем не работаешь.",
+          "day": 5,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Десятый дом — не про должность, а про то, как тебя видят",
+          "hint": "Разница между статусом и репутацией.",
+          "day": 6,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Как я подбираю дату запуска",
+          "hint": "Покажи логику. Снимает ощущение гадания.",
+          "day": 7,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Что в карте говорит о том, как человек продаёт",
+          "hint": "Практично для аудитории экспертов.",
+          "day": 8,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Периоды роста и периоды сборки",
+          "hint": "Почему не всякий год про масштаб.",
+          "day": 9,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Партнёрство: что смотреть до того, как подписали",
+          "hint": "За эту тему платят охотнее всего.",
+          "day": 10,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Второй и десятый дом в связке: доход и признание",
+          "hint": "Разбери, почему одно без другого буксует.",
+          "day": 11,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Что карта не решит за предпринимателя",
+          "hint": "Честные границы. Отсекает поиск волшебной кнопки.",
+          "day": 12,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему благоприятная дата не спасает слабый продукт",
+          "hint": "Твёрдая позиция.",
+          "day": 13,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Рилс",
+          "title": "Три ошибки экспертов в выборе ниши",
+          "hint": "Астрология плюс здравый смысл.",
+          "day": 14,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "«Мне нельзя запускать в ретроградный Меркурий»",
+          "hint": "Разбери, что реально стоит учитывать.",
+          "day": 15,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Сторис",
+          "title": "Опрос: что чаще всего срывает ваши запуски",
+          "hint": "Ответы разберёшь завтра.",
+          "day": 16,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Гороскоп компании: работает или нет",
+          "hint": "Спокойный разбор популярного запроса.",
+          "day": 17,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Рилс",
+          "title": "«Просто выберите мне дату» — почему я так не работаю",
+          "hint": "Объясни, что идёт до даты.",
+          "day": 18,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: запуск перенесли на две недели",
+          "hint": "Что было в карте, что решили, что вышло. Цифры по возможности.",
+          "day": 19,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: сменили позиционирование и пошли заявки",
+          "hint": "Показывает работу с бизнесом, а не с датами.",
+          "day": 20,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как я готовлюсь к бизнес-разбору",
+          "hint": "Процесс по шагам.",
+          "day": 21,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Что клиент уносит с бизнес-разбора",
+          "hint": "Результат словами клиента.",
+          "day": 22,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Отзывы предпринимателей",
+          "hint": "Скрины с закрытыми именами.",
+          "day": 23,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Мои собственные цифры за год",
+          "hint": "Показываешь, что применяешь метод к себе.",
+          "day": 24,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Как я строила своё дело без продюсера",
+          "hint": "Личная история. Ближе всего твоей аудитории.",
+          "day": 25,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Рилс",
+          "title": "Три вещи, которые я сделала бы иначе",
+          "hint": "Опыт, а не мотивация.",
+          "day": 26,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Кому подойдёт бизнес-разбор, а кому рано",
+          "hint": "Честная отстройка.",
+          "day": 27,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Состав, формат и цена бизнес-разбора",
+          "hint": "Прямо и конкретно.",
+          "day": 28,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Сторис",
+          "title": "Открыла запись на разборы",
+          "hint": "Прямое приглашение. Месяц контента был ради этого дня.",
+          "day": 29,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "30 дней контента: что изменилось",
+          "hint": "Покажи свои цифры до и после. Такой пост продаёт лучше любого оффера.",
+          "day": 30,
+          "stage": "Сближение и приглашение"
+        }
+      ]
+    },
+    {
+      "id": "realizaciya",
+      "name": "Реализация и предназначение",
+      "tagline": "Запрос «кто я и чем заниматься» — самый частый вход в астрологию.",
+      "ideas": [
+        {
+          "format": "Пост",
+          "title": "Как я пришла в астрологию",
+          "hint": "Без «знаков свыше». Что реально происходило в жизни в тот момент и почему ты осталась.",
+          "day": 1,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему из всех тем я выбрала тему реализации",
+          "hint": "Личная причина, а не «это востребовано». Задаёт тему всего месяца.",
+          "day": 2,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Почему мне нравятся именно эти разборы",
+          "hint": "Что ты чувствуешь, когда работаешь с темой «реализация и предназначение». Две-три сторис, живьём.",
+          "day": 3,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как выглядит моя работа изнутри",
+          "hint": "Карта, заметки, подготовка. Процесс показывает уровень лучше регалий.",
+          "day": 4,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Рилс",
+          "title": "Кому я не подхожу как астролог",
+          "hint": "Отсечение работает лучше зазывания. Назови прямо, с кем не работаешь.",
+          "day": 5,
+          "stage": "Знакомство"
+        },
+        {
+          "format": "Пост",
+          "title": "Предназначение — это не одна профессия",
+          "hint": "Снимает тревогу «я живу не свою жизнь».",
+          "day": 6,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Что в карте реально указывает на дело",
+          "hint": "Конкретные точки, без тумана.",
+          "day": 7,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Узлы: что это и откуда вокруг них столько мистики",
+          "hint": "Объясни спокойно, для новичка.",
+          "day": 8,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Солнце и Марс: чем светишь и чем берёшь",
+          "hint": "Простое разделение, которое сразу применяют.",
+          "day": 9,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Рилс",
+          "title": "Три признака, что вы не в своей роли",
+          "hint": "Бытовые и проверяемые.",
+          "day": 10,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Что делать, если талант есть, а денег он не приносит",
+          "hint": "Соединяешь реализацию и деньги.",
+          "day": 11,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Возраст и реализация: почему поздно не бывает",
+          "hint": "Через реальные периоды карты, не через мотивацию.",
+          "day": 12,
+          "stage": "База ниши"
+        },
+        {
+          "format": "Пост",
+          "title": "Почему «делай что любишь» — плохой совет",
+          "hint": "Своя позиция. Такие посты цитируют.",
+          "day": 13,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Рилс",
+          "title": "«Карта покажет мою профессию» — что здесь не так",
+          "hint": "Карта показывает способ, а не должность.",
+          "day": 14,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Миссия, миссия, миссия: откуда эта мода",
+          "hint": "Разбери, что за словом обычно стоит выгорание.",
+          "day": 15,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Сторис",
+          "title": "Опрос: в чём вы сомневаетесь по своему делу",
+          "hint": "Прямой заход на консультации.",
+          "day": 16,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Можно ли «не реализовать» карту",
+          "hint": "Честный ответ без запугивания.",
+          "day": 17,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Рилс",
+          "title": "Знаки судьбы: где наблюдение, а где выдумка",
+          "hint": "Твоя линия против магического мышления.",
+          "day": 18,
+          "stage": "Мифы и возражения"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: сменила профессию в 38 и не прогадала",
+          "hint": "Карта, период, решение, результат.",
+          "day": 19,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Кейс: осталась в профессии, но поменяла роль",
+          "hint": "Показывает, что уходить не обязательно.",
+          "day": 20,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Как проходит разбор реализации",
+          "hint": "Шаги и результат.",
+          "day": 21,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Что человек понимает про себя на таком разборе",
+          "hint": "Словами клиента.",
+          "day": 22,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Сторис",
+          "title": "Отзывы после разборов о деле",
+          "hint": "Скрины с закрытыми именами.",
+          "day": 23,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Как я сама выбирала между двумя делами",
+          "hint": "Твоя история про уход из прошлой сферы.",
+          "day": 24,
+          "stage": "Доказательства"
+        },
+        {
+          "format": "Пост",
+          "title": "Чего мне стоило начать",
+          "hint": "Личное и конкретное: сроки, деньги, страхи.",
+          "day": 25,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Рилс",
+          "title": "Что я говорю тем, кто боится начинать",
+          "hint": "Без лозунгов, по делу.",
+          "day": 26,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Кому подойдёт разбор реализации",
+          "hint": "Честная отстройка.",
+          "day": 27,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "Состав и цена разбора",
+          "hint": "Прямым текстом.",
+          "day": 28,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Сторис",
+          "title": "Открыла запись на разборы",
+          "hint": "Прямое приглашение. Месяц контента был ради этого дня.",
+          "day": 29,
+          "stage": "Сближение и приглашение"
+        },
+        {
+          "format": "Пост",
+          "title": "30 дней контента: что изменилось",
+          "hint": "Покажи свои цифры до и после. Такой пост продаёт лучше любого оффера.",
+          "day": 30,
+          "stage": "Сближение и приглашение"
+        }
+      ]
+    },
+    {
+      "id": "mastera-igry",
+      "name": "Мастера игры «Тайны Денежного Дома»",
+      "tagline": "Для тех, кто ведёт игру или готовится к сертификации — контент, который приводит группы на демо.",
+      "ideas": [
+        {
+          "day": 1,
+          "stage": "Знакомство",
+          "format": "Пост",
+          "title": "Как я стала мастером игры «Тайны Денежного Дома»",
+          "hint": "Реальная причина, почему выбрала именно этот формат, а не только консультации."
+        },
+        {
+          "day": 2,
+          "stage": "Знакомство",
+          "format": "Пост",
+          "title": "Что такое «Тайны Денежного Дома» одним постом",
+          "hint": "Простыми словами для тех, кто ещё не в курсе: про что игра и кому она."
+        },
+        {
+          "day": 3,
+          "stage": "Знакомство",
+          "format": "Сторис",
+          "title": "Как выглядит игра изнутри",
+          "hint": "Фото или видео с последней сессии: поле, карты, атмосфера."
+        },
+        {
+          "day": 4,
+          "stage": "Знакомство",
+          "format": "Сторис",
+          "title": "Почему мне нравится вести именно групповой формат",
+          "hint": "Что даёт тебе энергия группы, чего нет в разборе один на один."
+        },
+        {
+          "day": 5,
+          "stage": "Знакомство",
+          "format": "Рилс",
+          "title": "Кому эта игра не подходит",
+          "hint": "Честная отстройка. Отсекает случайных людей, приводит осознанных."
+        },
+        {
+          "day": 6,
+          "stage": "База ниши",
+          "format": "Пост",
+          "title": "Три уровня игры: личность, деньги, решения",
+          "hint": "Коротко покажи структуру. Снимает ощущение «непонятно, что там происходит»."
+        },
+        {
+          "day": 7,
+          "stage": "База ниши",
+          "format": "Рилс",
+          "title": "Чем игра отличается от обычной консультации",
+          "hint": "Формат, динамика, эффект группы — то, чего нет в разборе один на один."
+        },
+        {
+          "day": 8,
+          "stage": "База ниши",
+          "format": "Пост",
+          "title": "Почему группа до 4 человек даёт больше, чем разбор один на один",
+          "hint": "Твоя позиция как мастера. Хорошо заходит и участникам, и будущим мастерам."
+        },
+        {
+          "day": 9,
+          "stage": "База ниши",
+          "format": "Пост",
+          "title": "Что участник получает на руки после игры",
+          "hint": "План развития, инсайты, конкретные следующие шаги."
+        },
+        {
+          "day": 10,
+          "stage": "База ниши",
+          "format": "Сторис",
+          "title": "Онлайн или офлайн — в чём разница",
+          "hint": "Покажи оба формата, чтобы человек понимал, что выбирает."
+        },
+        {
+          "day": 11,
+          "stage": "База ниши",
+          "format": "Пост",
+          "title": "Как проходит игра по времени",
+          "hint": "2–4 часа, этапы. Снимает тревогу «а сколько это займёт»."
+        },
+        {
+          "day": 12,
+          "stage": "База ниши",
+          "format": "Рилс",
+          "title": "Вопрос, который мне задают чаще всего перед игрой",
+          "hint": "Один реальный вопрос, честный ответ."
+        },
+        {
+          "day": 13,
+          "stage": "Мифы и возражения",
+          "format": "Пост",
+          "title": "«Это же просто настолка» — что за этим скепсисом",
+          "hint": "Разбери спокойно, не оправдываясь. Такие посты меняют отношение сильнее уговоров."
+        },
+        {
+          "day": 14,
+          "stage": "Мифы и возражения",
+          "format": "Рилс",
+          "title": "«Мне будет неловко говорить о деньгах при всех»",
+          "hint": "Как на самом деле устроена безопасность в групповом формате."
+        },
+        {
+          "day": 15,
+          "stage": "Мифы и возражения",
+          "format": "Пост",
+          "title": "«А если в моей жизни и так всё понятно»",
+          "hint": "Для кого разбор ценен даже тогда, когда кажется, что всё ясно."
+        },
+        {
+          "day": 16,
+          "stage": "Мифы и возражения",
+          "format": "Сторис",
+          "title": "Опрос: что останавливает от участия в демо",
+          "hint": "Ответы разберёшь в следующем посте — готовая тема на завтра."
+        },
+        {
+          "day": 17,
+          "stage": "Мифы и возражения",
+          "format": "Пост",
+          "title": "Игра — не только про «получится или нет» с деньгами",
+          "hint": "Разверни, что уровней разбора три, а не один."
+        },
+        {
+          "day": 18,
+          "stage": "Мифы и возражения",
+          "format": "Рилс",
+          "title": "«Мне нужно готовиться» — нет, не нужно",
+          "hint": "Снимает барьер перед записью на демо."
+        },
+        {
+          "day": 19,
+          "stage": "Доказательства",
+          "format": "Пост",
+          "title": "Кейс: что изменилось у участницы после демо-игры",
+          "hint": "Запрос — что вскрылось в игре — что сделала после. Детали меняешь."
+        },
+        {
+          "day": 20,
+          "stage": "Доказательства",
+          "format": "Пост",
+          "title": "Кейс: четыре разных результата в одной группе",
+          "hint": "Показывает, что игра работает индивидуально даже в группе."
+        },
+        {
+          "day": 21,
+          "stage": "Доказательства",
+          "format": "Сторис",
+          "title": "Отзыв с последней сессии",
+          "hint": "Скрин с закрытыми именами."
+        },
+        {
+          "day": 22,
+          "stage": "Доказательства",
+          "format": "Пост",
+          "title": "Что говорят участники сразу после игры",
+          "hint": "Три реальные короткие цитаты, разные по тону."
+        },
+        {
+          "day": 23,
+          "stage": "Доказательства",
+          "format": "Сторис",
+          "title": "Как я готовлюсь к игре",
+          "hint": "Процесс подготовки — показывает уровень работы."
+        },
+        {
+          "day": 24,
+          "stage": "Доказательства",
+          "format": "Пост",
+          "title": "История клиентки, которая через игру поняла смену профессии",
+          "hint": "Полный путь: игра — инсайт — решение — что сделала дальше."
+        },
+        {
+          "day": 25,
+          "stage": "Сближение и приглашение",
+          "format": "Пост",
+          "title": "Мой путь как мастера игры: с чего начинала",
+          "hint": "Личная история подготовки и первых сессий, без глянца."
+        },
+        {
+          "day": 26,
+          "stage": "Сближение и приглашение",
+          "format": "Рилс",
+          "title": "Что мне лично дала работа с этой игрой",
+          "hint": "Как изменилась твоя практика с тех пор, как стала вести игру."
+        },
+        {
+          "day": 27,
+          "stage": "Сближение и приглашение",
+          "format": "Пост",
+          "title": "Кому подходит стать мастером игры, а кому рано",
+          "hint": "Честная отстройка для тех, кто задумывается о сертификации."
+        },
+        {
+          "day": 28,
+          "stage": "Сближение и приглашение",
+          "format": "Пост",
+          "title": "Как проходит обучение и сертификация мастеров",
+          "hint": "Состав пакета, формат, что входит — прямым текстом."
+        },
+        {
+          "day": 29,
+          "stage": "Сближение и приглашение",
+          "format": "Сторис",
+          "title": "Открыта запись на демо-игру",
+          "hint": "Прямое приглашение. Месяц контента был ради этого дня."
+        },
+        {
+          "day": 30,
+          "stage": "Сближение и приглашение",
+          "format": "Пост",
+          "title": "30 дней контента: что изменилось",
+          "hint": "Покажи свои цифры до и после из точки А и точки Б."
+        }
+      ]
+    }
+  ],
+  "pointB": {
+    "note": "30 дней закрыты. Внеси те же цифры — увидишь разницу.",
+    "lockedNote": "Точка Б открывается, когда закрыты все 30 дней."
+  }
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { try { tg.ready(); tg.expand(); } catch(e){} }
+
+  var STORE = "kb_content_tracker_v2";
+  var DATA = null, OFFLINE = false;
+  var S = load();
+  var root = document.getElementById("root");
+
+  function blank(){ return { themeId:null, startDate:null, pointA:{}, pointB:{}, days:{}, offset:0 }; }
+  function load(){ try { return JSON.parse(localStorage.getItem(STORE)) || blank(); } catch(e){ return blank(); } }
+  function save(){ try { localStorage.setItem(STORE, JSON.stringify(S)); return true; } catch(e){ return false; } }
+
+  function toast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show");
+    clearTimeout(t._x); t._x = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+  }
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function today(){ var d = new Date(); d.setHours(0,0,0,0); return d; }
+  function fmt(iso){
+    var d = new Date(iso);
+    var m = ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+    return d.getDate() + " " + m[d.getMonth()];
+  }
+  function total(){ return (DATA && DATA.challenge && DATA.challenge.totalDays) || 30; }
+  function currentDay(){
+    if (!S.startDate) return 1;
+    var n = Math.floor((today() - new Date(S.startDate)) / 86400000) + 1 + (S.offset || 0);
+    return Math.max(1, Math.min(total(), n));
+  }
+  function theme(){
+    if (!DATA) return null;
+    for (var i=0;i<DATA.themes.length;i++) if (DATA.themes[i].id === S.themeId) return DATA.themes[i];
+    return null;
+  }
+  function ideaFor(day){
+    var t = theme(); if (!t || !t.ideas.length) return null;
+    return t.ideas[(day - 1) % t.ideas.length];
+  }
+  function doneCount(){ return Object.keys(S.days).length; }
+  function plural(n,a,b,c){
+    var m = n % 100; if (m > 4 && m < 20) return c;
+    m = n % 10; if (m === 1) return a; if (m > 1 && m < 5) return b; return c;
+  }
+  function num(v){
+    if (v === undefined || v === null || v === "") return null;
+    var n = parseFloat(String(v).replace(/[^\d.,-]/g,"").replace(",","."));
+    return isNaN(n) ? null : n;
+  }
+  function fmtn(n){ return n === null ? "—" : n.toLocaleString("ru-RU"); }
+  function delta(a,b){
+    if (a === null || b === null) return "";
+    var d = b - a;
+    if (d === 0) return ' <span style="color:var(--body);font-size:12px">без изменений</span>';
+    var col = d > 0 ? "var(--gold-deep)" : "var(--body)";
+    return ' <span style="color:' + col + ';font-size:12px">' + (d > 0 ? "+" : "−") + Math.abs(d).toLocaleString("ru-RU") + '</span>';
+  }
+  function authorHtml(){
+    var c = DATA.challenge;
+    if (!c.author) return "";
+    var photo = c.authorPhoto
+      ? '<img class="author-photo" src="' + esc(c.authorPhoto) + '" alt="' + esc(c.author) + '">'
+      : '<div class="author-photo placeholder">' + esc((c.author || "?").trim().charAt(0)) + '</div>';
+    var link = c.channelUrl
+      ? '<a class="author-link" href="' + esc(c.channelUrl) + '" target="_blank" rel="noopener">' + esc(c.channelLabel || c.channelUrl) + '</a>'
+      : "";
+    return '<div class="author-row">' + photo +
+           '<div class="author-text"><div class="author-name">' + esc(c.author) + '</div>' + link + '</div></div>';
+  }
+  function inputAttrs(f){
+    var isNum = f.type === "number";
+    return ' type="' + (isNum ? "number" : "text") + '" inputmode="' + (isNum ? "numeric" : "text") + '"';
+  }
+
+  /* ---------- данные ---------- */
+  fetch("data.json?v=" + Date.now(), { cache:"no-store" })
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(j){ DATA = j; render(); })
+    .catch(function(){
+      try {
+        DATA = JSON.parse(document.getElementById("fallback-data").textContent);
+        OFFLINE = true; render();
+      } catch(e){ renderError(); }
+    });
+
+  function renderError(){
+    root.innerHTML =
+      '<div class="eyebrow"><span class="line"></span><span>трекер контента</span><span class="line"></span></div>' +
+      '<h1 class="title">Данные <em>не загрузились</em></h1>' +
+      '<p class="subtitle">Файл data.json не открылся. Проверь, что он лежит рядом с index.html, и обнови экран.</p>' +
+      '<button class="btn" id="retry">Обновить</button>';
+    document.getElementById("retry").onclick = function(){ location.reload(); };
+  }
+
+  /* ---------- экраны ---------- */
+  function render(){
+    var note = document.getElementById("offline-note");
+    if (note) note.textContent = OFFLINE ? "данные встроены в файл · data.json не подключён" : "";
+    if (!S.themeId || !S.startDate) return renderOnboarding();
+    renderMain();
+  }
+
+  function renderOnboarding(){
+    var sel = S._draftTheme || null;
+    var h = '<div class="eyebrow"><span class="line"></span><span>30 дней</span><span class="line"></span></div>' +
+      '<h1 class="title">' + esc(DATA.challenge.title) + ' <em>' + esc(DATA.challenge.titleEm || "") + '</em></h1>' +
+      '<p class="subtitle">' + esc(DATA.challenge.subtitle) + '</p>' +
+      authorHtml() +
+      '<div class="card"><div class="card-label">Шаг 1 · Точка А</div>' +
+      '<p class="muted" style="margin-bottom:16px">' + esc(DATA.pointA.note) + '</p>';
+    DATA.pointA.fields.forEach(function(f){
+      h += '<div class="field"><label for="pa-' + esc(f.id) + '">' + esc(f.label) + '</label>' +
+           '<input id="pa-' + esc(f.id) + '" data-pa="' + esc(f.id) + '"' + inputAttrs(f) +
+           ' placeholder="' + esc(f.placeholder) + '"></div>';
+    });
+    h += '</div><div class="card-label" style="text-align:center;margin:24px 0 12px">Шаг 2 · Тема месяца</div>';
+    DATA.themes.forEach(function(t){
+      h += '<div class="theme-opt' + (sel === t.id ? ' sel' : '') + '" data-theme="' + esc(t.id) + '">' +
+             '<h3>' + esc(t.name) + '</h3><p>' + esc(t.tagline) + '</p></div>';
+    });
+    h += '<button class="btn" id="start" style="margin-top:18px">Начать 30 дней</button>' +
+         '<p class="btn-note">Отсчёт пойдёт с сегодняшнего дня. Тему потом можно сменить.</p>';
+    root.innerHTML = h;
+
+    Array.prototype.forEach.call(root.querySelectorAll("[data-theme]"), function(el){
+      el.onclick = function(){
+        var vals = {};
+        Array.prototype.forEach.call(root.querySelectorAll("[data-pa]"), function(i){ vals[i.getAttribute("data-pa")] = i.value; });
+        S._draftTheme = el.getAttribute("data-theme");
+        renderOnboarding();
+        Array.prototype.forEach.call(root.querySelectorAll("[data-pa]"), function(i){ i.value = vals[i.getAttribute("data-pa")] || ""; });
+        var sc = root.querySelector(".theme-opt.sel");
+        if (sc) sc.scrollIntoView({ block:"center", behavior:"smooth" });
+      };
+    });
+    document.getElementById("start").onclick = function(){
+      if (!S._draftTheme) return toast("Выбери тему месяца");
+      var pa = {};
+      Array.prototype.forEach.call(root.querySelectorAll("[data-pa]"), function(i){
+        if (i.value.trim()) pa[i.getAttribute("data-pa")] = i.value.trim();
+      });
+      S.themeId = S._draftTheme; delete S._draftTheme;
+      S.pointA = pa; S.startDate = today().toISOString();
+      save(); window.scrollTo(0,0); render();
+    };
+  }
+
+  function renderMain(){
+    var t = theme(), day = currentDay(), n = doneCount(), tot = total();
+    var rec = S.days[day], idea = ideaFor(day), complete = n >= tot;
+
+    var h = '<div class="eyebrow"><span class="line"></span><span>трекер контента</span><span class="line"></span></div>';
+
+    h += '<div class="card"><div class="prog-top">' +
+      '<div class="prog-day">День ' + day + ' <span>из ' + tot + '</span></div>' +
+      '<div class="prog-streak">' + n + ' ' + plural(n,"день","дня","дней") + ' закрыто</div></div>' +
+      '<p class="theme-line">' + esc(t ? t.name : "") + '</p><div class="dots">';
+    for (var i=1;i<=tot;i++){
+      var d = S.days[i];
+      h += '<div class="dot' + (d ? " done" : "") + (d && d.shot ? " shot" : "") +
+           (i === day && !d ? " today" : "") + '" data-day="' + i + '">' + (d ? "✦" : i) + '</div>';
+    }
+    h += '</div></div>';
+
+    if (idea){
+      h += '<div class="idea-card"><div class="idea-head">' +
+             '<span class="tag">' + esc(idea.format) + '</span>' +
+             '<span class="daynum">' + esc(idea.stage || ("идея дня " + day)) + '</span></div><div class="idea-body">' +
+             '<h3 class="idea-title">' + esc(idea.title) + '</h3>' +
+             '<p class="idea-hint">' + esc(idea.hint) + '</p>' +
+             '<p style="font-size:11px;color:#A8A4B2;margin:12px 0 0;letter-spacing:.5px">День ' + day + ' из ' + tot + ' · этап «' + esc(idea.stage || "") + '»</p>';
+      if (rec){
+        h += '<div class="done-state" style="margin-top:16px"><div class="mark">Выпущено ✦</div>' +
+             '<div class="sub">' + fmt(rec.date) + (rec.shot ? " · скрин сохранён" : " · без скрина") + '</div>' +
+             (rec.shot ? '<img class="thumb-preview" src="' + rec.shot + '" alt="Скрин публикации" data-full="' + day + '">' : "") +
+             '</div>' + (rec.shot ? "" : '<button class="btn ghost sm" id="addshot" style="margin-top:12px">Добавить скрин</button>');
+      } else {
+        h += '<button class="btn" id="publish" style="margin-top:18px">Выпустила · приложить скрин</button>' +
+             '<button class="btn ghost sm" id="publish-noshot" style="margin-top:9px">Отметить без скрина</button>' +
+             '<p class="btn-note">Скрин нужен для соляра: по нему видно, в какой день что вышло.</p>';
+      }
+      h += '</div></div>';
+    }
+
+    var rw = DATA.challenge.reward;
+    h += '<div class="reward' + (complete ? " on" : "") + '"><div class="star">✦ ✦ ✦</div>' +
+         '<h3>' + esc(rw.title) + '</h3><p>' + esc(complete ? rw.unlocked : rw.locked) + '</p>' +
+         '<div class="bar"><i style="width:' + Math.round(n / tot * 100) + '%"></i></div></div>';
+
+    if (Object.keys(S.pointA).length){
+      h += '<details class="pointa"><summary><span class="pa-title">Точка А</span>' +
+           '<span class="pa-chev">' + fmt(S.startDate) + '</span></summary><div class="pa-body">';
+      DATA.pointA.fields.forEach(function(f){
+        if (S.pointA[f.id]) h += '<div class="pa-row"><span class="k">' + esc(f.label) + '</span>' +
+                                 '<span class="v">' + esc(S.pointA[f.id]) + '</span></div>';
+      });
+      h += '</div></details>';
+    }
+
+    var pbFilled = S.pointB && Object.keys(S.pointB).length;
+    h += '<div class="card"><div class="card-label">Точка Б</div>';
+    if (pbFilled){
+      h += '<p class="muted" style="margin-bottom:6px">Что изменилось за 30 дней.</p>';
+      DATA.pointA.fields.forEach(function(f){
+        var a = num(S.pointA[f.id]), b = num(S.pointB[f.id]);
+        if (a === null && b === null) return;
+        h += '<div class="pa-row"><span class="k">' + esc(f.label) + '</span>' +
+             '<span class="v">' + fmtn(a) + ' → ' + fmtn(b) + delta(a,b) + '</span></div>';
+      });
+      h += '<button class="btn ghost sm" id="editB" style="margin-top:14px">Изменить цифры</button>';
+    } else if (complete){
+      h += '<p class="muted" style="margin-bottom:14px">' + esc(DATA.pointB.note) + '</p>' +
+           '<button class="btn gold" id="fillB">Внести точку Б</button>';
+    } else {
+      h += '<p class="muted">' + esc(DATA.pointB.lockedNote) + '</p>';
+    }
+    h += '</div>';
+
+    h += '<button class="btn ghost" id="report">Собрать отчёт по дням</button>' +
+         '<div class="devbar"><button id="dev-next">тест: следующий день</button>' +
+         '<button id="dev-reset">сбросить всё</button></div>';
+
+    root.innerHTML = h;
+
+    var pub = document.getElementById("publish");
+    if (pub) pub.onclick = function(){ pickShot(day); };
+    var pubNo = document.getElementById("publish-noshot");
+    if (pubNo) pubNo.onclick = function(){ mark(day, null); };
+    var add = document.getElementById("addshot");
+    if (add) add.onclick = function(){ pickShot(day); };
+    var prev = root.querySelector("[data-full]");
+    if (prev) prev.onclick = function(){ openShot(day); };
+    Array.prototype.forEach.call(root.querySelectorAll(".dot.done"), function(el){
+      el.onclick = function(){ openShot(+el.getAttribute("data-day")); };
+    });
+    document.getElementById("report").onclick = renderReport;
+    var fb = document.getElementById("fillB"); if (fb) fb.onclick = renderPointB;
+    var eb = document.getElementById("editB"); if (eb) eb.onclick = renderPointB;
+    document.getElementById("dev-next").onclick = function(){ S.offset = (S.offset||0)+1; save(); render(); window.scrollTo(0,0); };
+    var rst = document.getElementById("dev-reset");
+    rst.onclick = function(){
+      if (rst.dataset.armed === "1"){
+        try { localStorage.removeItem(STORE); } catch(e){}
+        S = blank(); save(); render(); window.scrollTo(0,0);
+        toast("Прогресс стёрт. Начинаем заново.");
+        return;
+      }
+      rst.dataset.armed = "1";
+      rst.textContent = "нажми ещё раз, чтобы стереть";
+      rst.style.color = "var(--gold-deep)";
+      rst.style.borderColor = "var(--gold)";
+      clearTimeout(rst._t);
+      rst._t = setTimeout(function(){
+        rst.dataset.armed = "0";
+        rst.textContent = "сбросить всё";
+        rst.style.color = "";
+        rst.style.borderColor = "";
+      }, 4000);
+    };
+  }
+
+  function renderPointB(){
+    var h = '<div class="eyebrow"><span class="line"></span><span>точка б</span><span class="line"></span></div>' +
+      '<h1 class="title">Где ты <em>сейчас</em></h1>' +
+      '<p class="subtitle">' + esc(DATA.pointB.note) + '</p><div class="card">';
+    DATA.pointA.fields.forEach(function(f){
+      var was = S.pointA[f.id] ? " (было: " + esc(S.pointA[f.id]) + ")" : "";
+      var val = (S.pointB && S.pointB[f.id]) ? esc(S.pointB[f.id]) : "";
+      h += '<div class="field"><label for="pb-' + esc(f.id) + '">' + esc(f.label) + was + '</label>' +
+           '<input id="pb-' + esc(f.id) + '" data-pb="' + esc(f.id) + '"' + inputAttrs(f) +
+           ' value="' + val + '" placeholder="' + esc(f.placeholder) + '"></div>';
+    });
+    h += '</div><button class="btn" id="saveB">Сохранить точку Б</button>' +
+         '<button class="btn ghost" id="backB" style="margin-top:10px">Назад</button>';
+    root.innerHTML = h; window.scrollTo(0,0);
+    document.getElementById("saveB").onclick = function(){
+      var v = {};
+      Array.prototype.forEach.call(root.querySelectorAll("[data-pb]"), function(i){
+        if (i.value.trim()) v[i.getAttribute("data-pb")] = i.value.trim();
+      });
+      if (!Object.keys(v).length) return toast("Заполни хотя бы одно поле");
+      S.pointB = v; save(); render(); window.scrollTo(0,0);
+    };
+    document.getElementById("backB").onclick = function(){ render(); window.scrollTo(0,0); };
+  }
+
+  function renderReport(){
+    var tot = total(), items = "";
+    for (var i=1;i<=tot;i++){
+      var d = S.days[i]; if (!d) continue;
+      var idea = ideaFor(i);
+      items += '<div class="rep-item">' +
+        (d.shot ? '<img src="' + d.shot + '" alt="День ' + i + '" data-open="' + i + '">'
+                : '<div class="noimg">без скрина</div>') +
+        '<div class="meta"><div class="d">День ' + i + ' · ' + fmt(d.date) + '</div>' +
+        '<div class="t">' + esc(idea ? idea.title : "") + '</div></div></div>';
+    }
+    root.innerHTML =
+      '<div class="eyebrow"><span class="line"></span><span>отчёт</span><span class="line"></span></div>' +
+      '<h1 class="title">Что <em>вышло</em></h1>' +
+      '<p class="subtitle">' + (items
+        ? "Сделай скриншот этого экрана и пришли мне вместе с заявкой на соляр."
+        : "Пока ни одного дня не отмечено. Вернись на главный экран и начни с сегодняшней идеи.") + '</p>' +
+      (items ? '<div class="rep-grid">' + items + '</div>' : "") +
+      '<button class="btn ghost" id="back" style="margin-top:18px">На главный экран</button>';
+    Array.prototype.forEach.call(root.querySelectorAll("[data-open]"), function(el){
+      el.onclick = function(){ openShot(+el.getAttribute("data-open")); };
+    });
+    document.getElementById("back").onclick = function(){ render(); window.scrollTo(0,0); };
+    window.scrollTo(0,0);
+  }
+
+  function openShot(day){
+    var d = S.days[day]; if (!d || !d.shot) return;
+    document.getElementById("lightbox-img").src = d.shot;
+    document.getElementById("lightbox").classList.add("show");
+  }
+  document.getElementById("lightbox").onclick = function(){ this.classList.remove("show"); };
+
+  var picker = document.getElementById("picker");
+  function pickShot(day){
+    picker.value = "";
+    picker.onchange = function(){
+      var f = picker.files && picker.files[0];
+      if (!f) return;
+      shrink(f, function(url){ mark(day, url); });
+    };
+    picker.click();
+  }
+  function shrink(file, cb){
+    var reader = new FileReader();
+    reader.onload = function(){
+      var img = new Image();
+      img.onload = function(){
+        var k = Math.min(1, 420 / Math.max(img.width, img.height));
+        var c = document.createElement("canvas");
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        cb(c.toDataURL("image/jpeg", 0.55));
+      };
+      img.onerror = function(){ cb(null); };
+      img.src = reader.result;
+    };
+    reader.onerror = function(){ cb(null); };
+    reader.readAsDataURL(file);
+  }
+  function mark(day, shot){
+    S.days[day] = { date: new Date().toISOString(), shot: shot || null };
+    if (!save()){
+      S.days[day].shot = null; save();
+      toast("Скрин не поместился в память телефона. День отмечен без него.");
+    } else {
+      toast(shot ? "День " + day + " закрыт. Скрин сохранён." : "День " + day + " закрыт.");
+    }
+    render(); window.scrollTo(0,0);
+  }
+})();
+</script>
+</body>
+</html>
